@@ -1,3 +1,4 @@
+formConfigs/private/
 dist
 dist-*
 cabal-dev
