@@ -20,7 +20,7 @@ import Options.Applicative qualified as Opt
 -- import System.Console.Pretty qualified as Pretty
 
 import Iris qualified
-import Paths_form_helper qualified as Autogen
+import Paths_form_weaver qualified as Autogen
 -- https://cabal.readthedocs.io/en/stable/cabal-package.html?highlight=Paths_*#accessing-data-files-from-package-code
 
 

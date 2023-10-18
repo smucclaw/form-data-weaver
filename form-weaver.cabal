@@ -101,7 +101,7 @@ library
     exposed-modules:  CLI
 
     -- Modules included in this library but not exported.
-    other-modules: Paths_form_helper
+    other-modules: Paths_form_weaver
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
