@@ -55,12 +55,46 @@ extra-doc-files:    CHANGELOG.md
 -- Extra source files to be distributed with the package, such as examples, or a tutorial module.
 -- extra-source-files:
 
-common warnings
-    ghc-options: -Wall
+common common-options
+    build-depends:        base                  >= 4.14
+                        , containers            ^>=0.6
+                        , directory
+                        , effectful   
+                        , filepath
+
+    ghc-options:          -Wall
+                          -Wcompat
+                          -Widentities
+                          -Wincomplete-uni-patterns
+                          -Wincomplete-record-updates
+                          -Wredundant-constraints
+                          -Wnoncanonical-monad-instances
+    if impl(ghc >= 8.2)
+      ghc-options:       -fhide-source-paths
+    if impl(ghc >= 8.4)
+      ghc-options:       -Wmissing-export-lists
+                          -Wpartial-fields
+    if impl(ghc >= 8.8)
+      ghc-options:       -Wmissing-deriving-strategies
+                          -fwrite-ide-info
+                          -hiedir=.hie
+    -- if impl(ghc >= 8.10)
+    --   ghc-options:       -Wunused-packages
+    -- TODO: Turn this back on when this gets more stable
+
+    default-language:    GHC2021
+    default-extensions:  LambdaCase
+                         MultiWayIf
+                         PackageImports
+                         QuasiQuotes
+                         RecordWildCards
+                         ScopedTypeVariables
+                         StrictData
+                         TypeFamilies
+                         ViewPatterns
 
 library
-    -- Import common warning flags.
-    import:           warnings
+    import:              common-options
 
     -- Modules exported by the library.
     exposed-modules:  MyLib
@@ -73,12 +107,6 @@ library
 
     -- Other library packages from which modules are imported.
     build-depends:    aeson                 >=1.4
-                    , base                  >= 4.14
-                    , containers            ^>=0.6
-                    , directory
-                    , effectful   
-                    , filepath
-                    , hspec
                     , iris                  ^>=0.1.0.0
                     , lens-regex-pcre
                     , mtl                   ^>=2.2
@@ -96,22 +124,8 @@ library
     -- Directories containing source files.
     hs-source-dirs:   src
 
-    -- Base language which the package is written in.
-    default-language: GHC2021
-    default-extensions:
-        LambdaCase
-        MultiWayIf
-        PackageImports
-        QuasiQuotes
-        RecordWildCards
-        ScopedTypeVariables
-        StrictData
-        TypeFamilies
-        ViewPatterns
-
 executable form-helper
-    -- Import common warning flags.
-    import:           warnings
+    import:              common-options
 
     -- .hs or .lhs file containing the Main module.
     main-is:          Main.hs
@@ -130,12 +144,8 @@ executable form-helper
     -- Directories containing source files.
     hs-source-dirs:   app
 
-    -- Base language which the package is written in.
-    default-language: GHC2021
-
 test-suite form-helper-test
-    -- Import common warning flags.l
-    import:           warnings
+    import:              common-options
 
     -- Base language which the package is written in.
     default-language: GHC2021
@@ -156,6 +166,7 @@ test-suite form-helper-test
     main-is:          Main.hs
 
     -- Test dependencies.
-    build-depends:
-        base ^>=4.16.4.0,
-        form-helper
+    build-depends:  form-helper
+                  , hspec                     >=2.7.10
+                  , hspec-golden-aeson        ^>=0.9
+                  , QuickCheck                ^>=2.14.1
