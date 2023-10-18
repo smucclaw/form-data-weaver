@@ -5,67 +5,97 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DerivingStrategies #-}
 
-
-module CLI
-  (
-    main
-  ) where
+module CLI ( main ) where
 
 import Control.Monad.IO.Class (MonadIO (..))
 import Control.Monad.Reader (MonadReader)
-import Data.Foldable (traverse_)
+import Data.Foldable (traverse_, foldMap)
 
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
 -- import Data.Text.IO (hPutStrLn)
 
-import Options.Applicative   qualified as Opt
+import Options.Applicative qualified as Opt
 -- import System.Console.Pretty qualified as Pretty
 
 import Iris qualified
 import Paths_form_helper qualified as Autogen
 -- https://cabal.readthedocs.io/en/stable/cabal-package.html?highlight=Paths_*#accessing-data-files-from-package-code
 
-data Options = Options
-    { fileJsfmsDataSchema :: FilePath
-    , fileUIInfoYaml      :: FilePath
-    }
 
-optionsP :: Opt.Parser Options
-optionsP = do
-    fileJsfmsDataSchema <- Opt.strOption $ mconcat
-        [ Opt.long "schema"
-        , Opt.short 's'
-        , Opt.metavar "PATH_SCHEMA"
-        , Opt.help "Path to the Json Forms schema (typically named `schema.json` or `preUser.json`)"
-        ]
+{- Optsparse
+This application is simple enough that `optparse-generic` can probably do the job
+But doing it more manually makes for good practice
+-}
 
-    fileUIInfoYaml <- Opt.strOption $ mconcat
-        [ Opt.long "uiinfo"
-        , Opt.short 'u'
-        , Opt.metavar "PATH_UI_INFO_YAML"
-        , Opt.help "Path to the UI Info .yaml"
-        ]
+-- data Options = Options
+--     { optCommand :: !Cmd
+--     , globalOpt :: ...
+--     }
 
-    pure Options{..}
+data Cmd
+  = CheckUIYaml CheckUIYamlOptions
+  | CheckWithConfig FilePath
+    deriving stock (Show)
 
+data CheckUIYamlOptions = 
+  CheckUIYamlOptions { fileJsfmsDataSchema :: FilePath
+                     , fileUIInfoYaml      :: FilePath }
+    deriving stock (Show)
+
+cmdP :: Opt.Parser Cmd
+cmdP =  
+  Opt.subparser . foldMap command' $  
+    [ ("check-ui-info", "Check if UI Info yaml is consistent with json schema", 
+        chkUIinfoP)
+    , ("check-with-config", "(**Not Yet Implemented**) Use supplied config to check (i) if files conform to hash and (ii) if UI Info yaml is consistent with json schema", 
+        chkWithCfgP) ]
+  where
+    chkUIinfoP = CheckUIYaml <$> (CheckUIYamlOptions <$> 
+                    jsonSchemaArg <*> uiYamlArg)
+    
+    chkWithCfgP = CheckWithConfig <$> cfgArg
+
+    jsonSchemaArg = Opt.strArgument $ mconcat
+            [ Opt.help "Path to the Json Forms schema (typically named `schema.json` or `preUser.json`)"
+            , Opt.metavar "PATH_SCHEMA" ]
+
+    uiYamlArg = Opt.strArgument $ mconcat
+            [ Opt.help "Path to the UI Info .yaml"
+            , Opt.metavar "PATH_UI_INFO_YAML" ]
+
+    cfgArg = Opt.strArgument $ mconcat
+            [ Opt.help "Use supplied config to check (i) if files conform to hash and (ii) the .yaml"
+            , Opt.metavar "PATH_CFG_ARG" ]
+
+
+command' :: (String, String, Opt.Parser a) -> Opt.Mod Opt.CommandFields a
+command' (cmdName, desc, parser) = Opt.command cmdName (info' parser desc)
+
+info' :: Opt.Parser a -> String -> Opt.ParserInfo a
+info' p desc = Opt.info 
+    (Opt.helper <*> p) 
+    (Opt.fullDesc <> Opt.progDesc desc)
+
+
+------------------ Iris app and settings -------------------------------
 
 -- placeholder for now; this will change soon
 type EnvType = ()
-newtype App a = App { unApp :: Iris.CliApp Options EnvType a }
+newtype App a = App { unApp :: Iris.CliApp Cmd EnvType a }
     deriving newtype
         ( Functor
         , Applicative
         , Monad
         , MonadIO
-        , MonadReader (Iris.CliEnv Options EnvType)
+        , MonadReader (Iris.CliEnv Cmd EnvType)
         )
 
-appSettings :: Iris.CliEnvSettings Options EnvType
+appSettings :: Iris.CliEnvSettings Cmd EnvType
 appSettings = Iris.defaultCliEnvSettings
     { -- CLI parser for Options
-      Iris.cliEnvSettingsCmdParser = optionsP
+      Iris.cliEnvSettingsCmdParser = cmdP
       
       -- short description
     , Iris.cliEnvSettingsHeaderDesc = "Helper tool for managing and orchestrating web form ui text"
@@ -82,10 +112,26 @@ appSettings = Iris.defaultCliEnvSettings
 
 app :: App ()
 app = do
-    --  Get parsed 'Options' from the environment
-    Options{..} <- Iris.asksCliEnv Iris.cliEnvCmd
+    --  Get parsed 'Cmd' from the environment
+    parsedCmd <- Iris.asksCliEnv Iris.cliEnvCmd
 
-    liftIO $ putStrLn "placeholder TODO"
+    liftIO . putStrLn $ "[TEMP PLACEHOLDER] cmd is:\n"<> show parsedCmd
+
 
 main :: IO ()
 main = Iris.runCliApp appSettings $ unApp app
+
+
+{-
+Useful resources
+----------------
+
+On opts parse:
+* https://www.fpcomplete.com/haskell/library/optparse-applicative/
+* https://github.com/danidiaz/vdpq/blob/master/executable/Main.hs
+* https://danidiaz.medium.com/subcommands-with-optparse-applicative-1234549b21c6
+
+On configuration:
+* https://cs-syd.eu/posts/2016-06-26-a-configuration-loading-scheme-for-tools-in-haskell.html
+
+-}
