@@ -98,10 +98,10 @@ library
     import:              common-options
 
     -- Modules exported by the library.
-    exposed-modules:  MyLib
+    exposed-modules:  CLI
 
     -- Modules included in this library but not exported.
-    -- other-modules:
+    other-modules: Paths_form_helper
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
@@ -173,9 +173,9 @@ test-suite form-helper-test
 
     -- Test dependencies.
     build-depends:      form-helper
-                      , hspec                     
-                      , hspec-golden-aeson        
-                      , QuickCheck                
+                      , tasty             
+                      , tasty-hunit
+                      , tasty-quickcheck          
 
     ghc-options:      -rtsopts
                       -with-rtsopts=-N
