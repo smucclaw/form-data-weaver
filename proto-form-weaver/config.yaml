@@ -1,0 +1,3 @@
+defaults:
+  - form_schema: ../../usecases/smu/public/json/preUser.json
+  - program_le: ../../usecases/smu/public/le/program.le
