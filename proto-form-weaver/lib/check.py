@@ -10,6 +10,10 @@ def check_encoding_with_schema(config):
 
 
 
+
+def check_for_typos_in_nlas():
+    pass
+
 def check_encoding_typos(config): 
     typer.echo("Checking .le encoding for typos...")
 
