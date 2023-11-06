@@ -56,7 +56,7 @@ def all_checks(
     config_path: Path = typer.Argument("config.yaml", help="Path to the config file")
 ):
     """
-    Perform all checks. I.e.
+    Perform all checks. I.e. 
     (i) Check .le encoding for typos; and (ii) Check .le encoding against the JSON schema.  
     """    
     config = load_config(config_path)

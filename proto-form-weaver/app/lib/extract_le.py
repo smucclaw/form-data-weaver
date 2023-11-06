@@ -2,7 +2,13 @@ from pprint import pprint
 import ujson
 import re
 import doctest
+from dataclasses import dataclass
 
+
+@dataclass(frozen=True)
+class LeProg:
+    nlas: list[str]
+    rules: list[str]     
 
 def load_le_prog(config):
     with open(config.program_le, 'r', encoding='utf-8') as le_prog_file:
@@ -48,6 +54,6 @@ def extract_nlas_and_rules(lines_of_file):
     templates = parse_section_to_paras(lines_of_file, 'the templates are:')[0].split(",")
     rules = parse_section_to_paras(lines_of_file, 'the knowledge base rules includes:')
 
-    return templates, rules
+    return LeProg(templates, rules)
 
-# nlas, rules = extract_nlas_and_rules(load_le_prog(config))
+# leprog = extract_nlas_and_rules(load_le_prog(config))

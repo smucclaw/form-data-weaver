@@ -15,6 +15,7 @@ def load_schema(config):
 def get_all_properties(schema):
     return sorted([prop for prop in get_props_base(schema)])
 
+# TODO: need to fix json parsing so we don't get things like 'leg'
 def get_props_base(schema, property_names=None):
     if property_names is None:
         property_names = set()
@@ -25,7 +26,7 @@ def get_props_base(schema, property_names=None):
             # Add the keys (field names) to the property_names set
             property_names.update(schema['properties'].keys())
 
-        # Additionally, if 'allOf', 'anyOf', or 'oneOf' are present,
+        # If 'allOf', 'anyOf', or 'oneOf' are present,
         # iterate through each and collect property names
         for key in ('allOf', 'anyOf', 'oneOf'):
             if key in schema and isinstance(schema[key], list):
@@ -53,7 +54,7 @@ def normalize_property_name(str):
     # Replace the third period in things like "Clause 1.1.1" with "PERIOD", lol
     str = re.sub(r'(\d+)\.(\d+)\.(\d+)', r'\1.\2 PERIOD \3', str)
 
-    return str
+    return str.lower()
 
 # sch = load_schema(config)
 # [normalize_property_name(p) for p in get_all_properties(sch["$defs"])]
