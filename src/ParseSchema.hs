@@ -30,3 +30,22 @@ import Data.Tree (Tree)
 
 --- protoyping
 
+
+preuserPath :: FilePath
+-- preuserPath = "formConfigs/private/oct19/preUser.json"
+preuserPath = "formConfigs/private/preSimplest.json"
+
+getJSON :: IO BL.ByteString
+getJSON = BL.readFile preuserPath
+
+decodePreUser ::  IO (Maybe Value)
+-- decodePreUser ::  IO (Maybe (Tree Value))
+decodePreUser = fmap decode getJSON
+
+printPreUser = decodePreUser >>= pPrint
+
+-- https://abhinavsarkar.net/posts/json-parsing-from-scratch-in-haskell/
+
+-- https://stackoverflow.com/questions/35669080/resolving-references-while-parsing-a-json-document-with-aeson/35679992#35679992
+-- https://stackoverflow.com/questions/25789860/aeson-match-binary-tree
+-- https://stackoverflow.com/questions/52218662/parse-json-rose-tree-with-haskell-aeson

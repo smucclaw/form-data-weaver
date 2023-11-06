@@ -37,6 +37,7 @@ But doing it more manually makes for good practice
 data Cmd
   = CheckUIYaml CheckUIYamlOptions
   | CheckWithConfig FilePath
+  | GetFormFieldsFromLE FilePath
     deriving stock (Show)
 
 data CheckUIYamlOptions = 
@@ -47,15 +48,24 @@ data CheckUIYamlOptions =
 cmdP :: Opt.Parser Cmd
 cmdP =  
   Opt.subparser . foldMap command' $  
-    [ ("check-ui-info", "Check if UI Info yaml is consistent with json schema", 
-        chkUIinfoP)
-    , ("check-with-config", "(**Not Yet Implemented**) Use supplied config to check (i) if files conform to hash and (ii) if UI Info yaml is consistent with json schema", 
-        chkWithCfgP) ]
+    [ ("get-form-fields", "(**Not Yet Implemented**) Given an LE encoding, extracts the names of the json form fields that the LE encoding uses", 
+        fieldsFromLeP)
+    -- , ("check-ui-info", "(**Not Yet Implemented**) Check if UI Info yaml is consistent with json schema", 
+    --     chkUIinfoP)
+    -- , ("check-with-config", "(**Not Yet Implemented**) Use supplied config to check (i) if files conform to hash and (ii) if UI Info yaml is consistent with json schema", 
+    --     chkWithCfgP) 
+    ]
   where
+    fieldsFromLeP = GetFormFieldsFromLE <$> lengArg
+
     chkUIinfoP = CheckUIYaml <$> (CheckUIYamlOptions <$> 
                     jsonSchemaArg <*> uiYamlArg)
     
     chkWithCfgP = CheckWithConfig <$> cfgArg
+
+    lengArg = Opt.strArgument $ mconcat
+            [ Opt.help "The LE file (typically named `program.le`)"
+            , Opt.metavar "PATH_LE_ARG" ]
 
     jsonSchemaArg = Opt.strArgument $ mconcat
             [ Opt.help "Path to the Json Forms schema (typically named `schema.json` or `preUser.json`)"
@@ -68,6 +78,7 @@ cmdP =
     cfgArg = Opt.strArgument $ mconcat
             [ Opt.help "Use supplied config to check (i) if files conform to hash and (ii) the .yaml"
             , Opt.metavar "PATH_CFG_ARG" ]
+
 
 
 command' :: (String, String, Opt.Parser a) -> Opt.Mod Opt.CommandFields a
@@ -98,10 +109,10 @@ appSettings = Iris.defaultCliEnvSettings
       Iris.cliEnvSettingsCmdParser = cmdP
       
       -- short description
-    , Iris.cliEnvSettingsHeaderDesc = "Helper tool for managing and orchestrating web form ui text"
+    , Iris.cliEnvSettingsHeaderDesc = "Helper tool for web form usecase"
 
       -- Long app description to appear in --help
-    , Iris.cliEnvSettingsProgDesc = "Helper tool for managing and orchestrating web form ui text (and potentially more)"
+    , Iris.cliEnvSettingsProgDesc = "Helper tool for web form usecase"
 
       -- a function to display the tool version
     , Iris.cliEnvSettingsVersionSettings =
@@ -110,12 +121,21 @@ appSettings = Iris.defaultCliEnvSettings
             }
     }
 
+-- handleCmd :: Cmd -> 
+handleCmd :: Cmd -> FilePath
+handleCmd = \case
+  GetFormFieldsFromLE pathLE -> pathLE
+  _ -> error "Not yet implemented"
+
+
 app :: App ()
 app = do
     --  Get parsed 'Cmd' from the environment
     parsedCmd <- Iris.asksCliEnv Iris.cliEnvCmd
 
     liftIO . putStrLn $ "[TEMP PLACEHOLDER] cmd is:\n"<> show parsedCmd
+
+
 
 
 main :: IO ()
