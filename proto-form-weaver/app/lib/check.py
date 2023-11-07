@@ -51,11 +51,11 @@ def schema_properties_are_subset_of_encoding_rules_fields(config, schema, leprog
     check_passed = True
     for field in fields:
          if not sch_field_is_used_in_rules(rules_str, field):
-            typer.echo(f"{CROSSMARK} Fields Check failed: {field} does not seem to be used in encoding rules")
+            typer.echo(f"{CROSSMARK} Fields Check failed: `{field}` does not seem to be used in encoding rules")
             check_passed = False
     
     if check_passed: 
-        typer.echo(f"{CHKMARK} Fields Check passed: for every field in form json schema, there is >=1 use of {field} in encoding rules")
+        typer.echo(f"{CHKMARK} Fields Check passed: for every field in form json schema, there is >=1 use of that field in encoding rules")
         return True
     else: return False
 
@@ -73,7 +73,7 @@ def check_for_typos_in_nlas():
     pass
 
 def check_encoding_typos(config): 
-    typer.echo("Checking .le encoding for typos...")
+    typer.echo("[NOT YET IMPLEMENTED] Checking .le encoding for typos...")
 
 
 def do_all_checks(config): 
