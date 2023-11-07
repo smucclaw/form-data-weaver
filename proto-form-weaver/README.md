@@ -2,7 +2,8 @@ This is a quick hack-y, experimental prototype of what I wanted to do with `form
 
 # Current assumptions
 
-* The functions `is_bool_date_or_int_date` and `schema_not_leaf_sch` assume certain things about the current structure of the json schema. This makes the json parsing less robust to future change, but unfortunately I don't see a purely structural way to do this that wouldn't over-generate.
+* The functions `is_bool_date_or_int_date` and `schema_not_leaf_sch` assume certain things about the current structure of the json schema. This does make the json parsing less robust to future change.
+  - [ ] TODO] I have an idea for how to make this more generic / make the assumptions a lot more minimal; I will do this when time permits.
 
 
 # Extract relevant fields from json schema
