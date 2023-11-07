@@ -30,7 +30,7 @@ Field names are normalized to:
 * lowercases replaced with spaces
 * third period in things like "1.1.1" replaced with " period"
 
-# Check LE coding against schema
+# Check LE encoding against schema
 
 Run, from `form-weaver/proto-form-weaver`
 ```
