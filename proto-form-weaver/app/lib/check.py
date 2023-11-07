@@ -6,8 +6,8 @@ import yaml
 from functools import partial 
 import re
 
-from lib.extract_le import LeProg, extract_nlas_and_rules, load_le_prog
-from lib.extract_json import load_schema, normalize_field_name, get_all_fields
+from .extract_le import LeProg, extract_nlas_and_rules, load_le_prog
+from .extract_json import load_schema, normalize_field_name, get_fields_from_cfg
 
 
 CHKMARK = '\u2713'
@@ -29,7 +29,7 @@ def schema_properties_are_subset_of_encoding_rules_fields(schema, leprog):
     "’s <property>" in the rules of encoding?
     """
 
-    schema_properties = [normalize_field_name(p) for p in get_all_fields(schema["$defs"])]
+    schema_properties = [normalize_field_name(p) for p in get_fields_from_cfg(schema["$defs"])]
 
     rules_str = "\n".join(leprog.rules).lower()
 

@@ -4,13 +4,16 @@ import ujson
 import re
 import doctest
 
+def get_fields_from_cfg(config):
+    sch = load_schema(config)
+    return [normalize_field_name(f) for f in get_relevant_fields(sch)]
+
 def load_schema(config):
     with open(config.form_schema, 'r') as schema_file:
         schema = ujson.load(schema_file)
         resolved_schema = replace_refs(schema)
 
     return resolved_schema
-
 
 def get_relevant_fields(schema):
     fields = extract_fields_up_to_two_ancestors(schema)
@@ -64,9 +67,6 @@ def normalize_field_name(str):
     str = re.sub(r'(\d+)\.(\d+)\.(\d+)', r'\1.\2 PERIOD \3', str)
 
     return str.lower() # we lowercase the LE source code when comparing
-
-sch = load_schema(config)
-[normalize_field_name(p) for p in get_relevant_fields(sch)]
 
 
 if __name__ == "__main__":

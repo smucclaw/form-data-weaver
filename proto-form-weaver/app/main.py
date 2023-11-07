@@ -3,7 +3,7 @@ from typing import Optional
 from pathlib import Path
 from dataclasses import dataclass
 import yaml
-from lib import check
+from .lib import check, extract_json
 
 app = typer.Typer()
 
@@ -24,10 +24,30 @@ def load_config(config_path: Path) -> AppConfig:
         program_le=Path(config_data.get("program_le"))
     )
 
-@app.command("check-encoding-with-schema")
-def check_encoding_with_schema(
-    config_path: Path = typer.Argument("config.yaml", help="Path to the config file")
-):
+@app.command("extract-schema-fields")
+def extract_schema_fields(
+    config_path: Path = typer.Argument(
+        "config.yaml", 
+        help="Path to the config file")
+    ):
+    """
+    Extract the most relevant fields (leaves, parents and grandparents of leaves) from Json schema
+    """
+    config = load_config(config_path)
+
+    typer.echo(f"# Normalized fields from schema at {config.form_schema}:")
+
+    fields = extract_json.get_fields_from_cfg(config)
+    for fld in fields:
+        typer.echo(fld)
+
+
+@app.command("check-le-with-schema")
+def check_le_with_schema(
+    config_path: Path = typer.Argument(
+        "config.yaml", 
+        help="Path to the config file")
+    ):
     """
     Check .le encoding against the JSON schema.
     """    
@@ -38,10 +58,13 @@ def check_encoding_with_schema(
 
     check.check_encoding_with_schema(config)
 
+
 @app.command("check-encoding-typos")
 def check_encoding_typos(
-    config_path: Path = typer.Argument("config.yaml", help="Path to the config file")
-):
+    config_path: Path = typer.Argument(
+        "config.yaml", 
+        help="Path to the config file")
+    ):
     """
     Check .le encoding for typos.
     """
@@ -53,8 +76,10 @@ def check_encoding_typos(
 
 @app.command("all-checks")
 def all_checks(
-    config_path: Path = typer.Argument("config.yaml", help="Path to the config file")
-):
+    config_path: Path = typer.Argument(
+        "config.yaml", 
+        help="Path to the config file")
+    ):
     """
     Perform all checks. I.e. 
     (i) Check .le encoding for typos; and (ii) Check .le encoding against the JSON schema.  
