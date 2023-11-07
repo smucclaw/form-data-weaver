@@ -61,10 +61,11 @@ def extract_fields_up_to_two_ancestors(schema, path=None):
 
     return fields
 
-"""
->>> normalize_field_name("gah_15.1_or_14.1.1_or_14.1.2") == 'gah 15.1 or 14.1 period 1 or 14.1 period 2'
-"""
+
 def normalize_field_name(str):
+    """
+    >>> normalize_field_name("gah_15.1_or_14.1.1_or_14.1.2") == 'gah 15.1 or 14.1 period 1 or 14.1 period 2'
+    """
     # Replace underscores with spaces
     str = str.replace('_', ' ')
     # Replace the third period in things like "Clause 1.1.1" with "PERIOD", lol
