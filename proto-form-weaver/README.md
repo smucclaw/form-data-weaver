@@ -27,7 +27,7 @@ See the code for more details on the extraction.
 
 Field names are normalized to: 
 * lowercase
-* lowercases replaced with spaces
+* underscores replaced with spaces
 * third period in things like "1.1.1" replaced with " period"
 
 # Check LE encoding against schema
