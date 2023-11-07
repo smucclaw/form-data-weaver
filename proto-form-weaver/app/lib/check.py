@@ -7,7 +7,7 @@ from functools import partial
 import re
 
 from lib.extract_le import LeProg, extract_nlas_and_rules, load_le_prog
-from lib.extract_json import load_schema, normalize_property_name, get_all_properties
+from lib.extract_json import load_schema, normalize_field_name, get_all_fields
 
 
 CHKMARK = '\u2713'
@@ -22,14 +22,14 @@ def prop_is_field_in_rules(search_string, substring):
     match = regex.search(search_string)
     return match is not None
 
-# TODO: need to filter out things llike 'leg'
+# TODO: need to fix json parsing so we don't get things like 'leg'
 def schema_properties_are_subset_of_encoding_rules_fields(schema, leprog):
     """
     Is there any property in the schema that does not appear in stmg of the form
     "’s <property>" in the rules of encoding?
     """
 
-    schema_properties = [normalize_property_name(p) for p in get_all_properties(schema["$defs"])]
+    schema_properties = [normalize_field_name(p) for p in get_all_fields(schema["$defs"])]
 
     rules_str = "\n".join(leprog.rules).lower()
 

@@ -12,52 +12,61 @@ def load_schema(config):
     return resolved_schema
 
 
-def get_all_properties(schema):
-    return sorted([prop for prop in get_props_base(schema)])
+def get_relevant_fields(schema):
+    fields = extract_fields_up_to_two_ancestors(schema)
+    fields = sorted([field for field in fields])
+    return fields
 
-# TODO: need to fix json parsing so we don't get things like 'leg'
-def get_props_base(schema, property_names=None):
-    if property_names is None:
-        property_names = set()
+
+def extract_fields_up_to_two_ancestors(schema, path=None, is_root=True):
+    """
+    Extracts leaves, immed parents, and grandparents of leaves
+    """
+    fields = set()
+
+    if path is None:
+        path = []
 
     if isinstance(schema, dict):
-        # Check if 'properties' is in the schema and it is a dictionary
-        if 'properties' in schema and isinstance(schema['properties'], dict):
-            # Add the keys (field names) to the property_names set
-            property_names.update(schema['properties'].keys())
+        # If 'properties' is a key, this is an object; update the path
+        if 'properties' in schema:
+            # Continue down the schema tree and update the path
+            for key, sub_schema in schema['properties'].items():
+                # If we're at the root object, we do not add its name to the path
+                new_path = [] if is_root else path + [key]
+                fields |= extract_fields_up_to_two_ancestors(sub_schema, new_path, is_root=False)
+        else:
+            # Check for leaf node types
+            if 'type' in schema:
+                # Add the parent name if available
+                if path:
+                    fields.add(path[-1])
+                # Add the grandparent name if available
+                if len(path) > 1:
+                    fields.add(path[-2])
 
-        # If 'allOf', 'anyOf', or 'oneOf' are present,
-        # iterate through each and collect property names
-        for key in ('allOf', 'anyOf', 'oneOf'):
-            if key in schema and isinstance(schema[key], list):
+        # Recursively check for nested schemas within 'allOf', 'anyOf', 'oneOf'
+        for key in ['allOf', 'anyOf', 'oneOf']:
+            if key in schema:
                 for sub_schema in schema[key]:
-                    get_props_base(sub_schema, property_names)
+                    # When diving into these keys, we are no longer at the root
+                    fields |= extract_fields_up_to_two_ancestors(sub_schema, path, is_root=False)
 
-        # If the current dict is not a schema with 'properties' or schema constructs,
-        # recursively continue searching for nested properties
-        for value in schema.values():
-            get_props_base(value, property_names)
-
-    elif isinstance(schema, list):
-        # If it's a list, iterate over items which could be schemas
-        for item in schema:
-            get_props_base(item, property_names)
-
-    return property_names
+    return fields
 
 """
->>> normalize_property_name("gah_15.1_or_14.1.1_or_14.1.2") == "gah 15.1 or 14.1 PERIOD 1 or 14.1 PERIOD 2"
+>>> normalize_field_name("gah_15.1_or_14.1.1_or_14.1.2") == 'gah 15.1 or 14.1 period 1 or 14.1 period 2'
 """
-def normalize_property_name(str):
+def normalize_field_name(str):
     # Replace underscores with spaces
     str = str.replace('_', ' ')
     # Replace the third period in things like "Clause 1.1.1" with "PERIOD", lol
     str = re.sub(r'(\d+)\.(\d+)\.(\d+)', r'\1.\2 PERIOD \3', str)
 
-    return str.lower()
+    return str.lower() # we lowercase the LE source code when comparing
 
-# sch = load_schema(config)
-# [normalize_property_name(p) for p in get_all_properties(sch["$defs"])]
+sch = load_schema(config)
+[normalize_field_name(p) for p in get_relevant_fields(sch)]
 
 
 if __name__ == "__main__":
