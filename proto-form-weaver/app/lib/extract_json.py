@@ -21,23 +21,27 @@ def get_relevant_fields(schema):
     return fields
 
 
-def extract_fields_up_to_two_ancestors(schema, path=None, is_root=True):
+def extract_fields_up_to_two_ancestors(schema, path=None):
     """
     Extracts leaves, immed parents, and grandparents of leaves
     """
-    fields = set()
+    def is_object(sch): return 'properties' in sch
+    def is_bool_date_or_int_date(sch): 
+        return is_object(sch) and "happened" in sch['properties'] or "number" in sch['properties']
+        # technically don't need is_object(sch) bc of short-circuit evaln, but let's play it safe
+        # TODO: think more about whether there's a way to make this more general or at least make it part of config. But rn I don't think it's easy to make this more general, since going purely structural will result in capturing things we don't want
+    def schema_not_leaf_sch(sch): return is_object(sch) and not is_bool_date_or_int_date(sch) 
 
+    fields = set()
     if path is None:
         path = []
 
     if isinstance(schema, dict):
-        # If 'properties' is a key, this is an object; update the path
-        if 'properties' in schema:
-            # Continue down the schema tree and update the path
-            for key, sub_schema in schema['properties'].items():
-                # If we're at the root object, we do not add its name to the path
-                new_path = [] if is_root else path + [key]
-                fields |= extract_fields_up_to_two_ancestors(sub_schema, new_path, is_root=False)
+        if is_object(schema):
+            for child_key, child_schema in schema['properties'].items():
+                
+                new_path = [] if schema_not_leaf_sch(child_schema) else path + [child_key]
+                fields |= extract_fields_up_to_two_ancestors(child_schema, new_path)
         else:
             # Check for leaf node types
             if 'type' in schema:
@@ -53,7 +57,7 @@ def extract_fields_up_to_two_ancestors(schema, path=None, is_root=True):
             if key in schema:
                 for sub_schema in schema[key]:
                     # When diving into these keys, we are no longer at the root
-                    fields |= extract_fields_up_to_two_ancestors(sub_schema, path, is_root=False)
+                    fields |= extract_fields_up_to_two_ancestors(sub_schema, path)
 
     return fields
 

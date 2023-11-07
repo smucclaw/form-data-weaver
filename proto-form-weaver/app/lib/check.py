@@ -6,41 +6,56 @@ import yaml
 from functools import partial 
 import re
 
-from .extract_le import LeProg, extract_nlas_and_rules, load_le_prog
-from .extract_json import load_schema, normalize_field_name, get_fields_from_cfg
+from .extract_le import LeProg
+from . import extract_le as exle
+from . import extract_json as jsch
+# from .extract_json import load_schema, normalize_field_name, get_fields_from_cfg
 
 
 CHKMARK = '\u2713'
 CROSSMARK = '\u274C'
 
-def prop_is_field_in_rules(search_string, substring):
-    """ Returns True if match found, else false """
+def match2bool(match_result):
+    return match_result is not None
+
+def sch_field_is_used_in_rules(lowercased_rules_str, substring):
+    """ Returns True if any match found, else false """
     escaped_substring = re.escape(substring)
-    pattern = r"'s\s+" + escaped_substring + r"\s+is"
-    regex = re.compile(pattern)
 
-    match = regex.search(search_string)
-    return match is not None
+    patterns = [r"'s\s+" + escaped_substring + r"\s+is",
+                escaped_substring + r"'s",
+                escaped_substring + r"\sis\s"
+                ]    
+    rgxes = [re.compile(pattrn) for pattrn in patterns]
 
-# TODO: need to fix json parsing so we don't get things like 'leg'
-def schema_properties_are_subset_of_encoding_rules_fields(schema, leprog):
+    any_match = any(
+                        match2bool(rgx.search(lowercased_rules_str)) 
+                        for rgx in rgxes
+                    )
+    return any_match
+
+def schema_properties_are_subset_of_encoding_rules_fields(config, schema, leprog):
     """
-    Is there any property in the schema that does not appear in stmg of the form
-    "’s <property>" in the rules of encoding?
+    For any of the relevant fields in the schema,
+    is it the case that 
+    (i) it does not appear in stmg of the form
+        "'s <field>" in the rules of encoding?
+    and 
+    (ii) it does not appear in smtg of the form 
+        "<field>'s"
     """
 
-    schema_properties = [normalize_field_name(p) for p in get_fields_from_cfg(schema["$defs"])]
-
+    fields = jsch.get_fields_from_cfg(config)
     rules_str = "\n".join(leprog.rules).lower()
 
-    prop_check_passed = True
-    for prop in schema_properties:
-         if not prop_is_field_in_rules(rules_str, prop):
-            typer.echo(f"{CROSSMARK} Prop Check failed: No occurrence of <'s {prop}> in encoding rules")
-            prop_check_passed = False
+    check_passed = True
+    for field in fields:
+         if not sch_field_is_used_in_rules(rules_str, field):
+            typer.echo(f"{CROSSMARK} Fields Check failed: {field} does not seem to be used in encoding rules")
+            check_passed = False
     
-    if prop_check_passed: 
-        typer.echo(f"{CHKMARK} Prop Check passed: for every property in form json schema, there is >=1 occurrence of ''s {prop}' in encoding rules")
+    if check_passed: 
+        typer.echo(f"{CHKMARK} Fields Check passed: for every field in form json schema, there is >=1 use of {field} in encoding rules")
         return True
     else: return False
 
@@ -48,10 +63,10 @@ def schema_properties_are_subset_of_encoding_rules_fields(schema, leprog):
 def check_encoding_with_schema(config):
     typer.echo("Checking .le encoding against JSON schema...")
 
-    leprog = extract_nlas_and_rules(load_le_prog(config))
-    schema = load_schema(config)
+    leprog = exle.extract_nlas_and_rules(exle.load_le_prog(config))
+    schema = jsch.load_schema(config)
 
-    return schema_properties_are_subset_of_encoding_rules_fields(schema, leprog)
+    schema_properties_are_subset_of_encoding_rules_fields(config, schema, leprog)
 
 
 def check_for_typos_in_nlas():
