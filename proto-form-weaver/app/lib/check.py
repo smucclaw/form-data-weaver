@@ -46,7 +46,7 @@ def schema_properties_are_subset_of_encoding_rules_fields(config, schema, leprog
     """
 
     fields = jsch.get_fields_from_cfg(config)
-    rules_str = "\n".join(leprog.rules).lower()
+    rules_str = "\n".join(leprog.rules)
 
     check_passed = True
     for field in fields:

@@ -26,8 +26,7 @@ The fields that are extracted are:
 
 See the code for more details on the extraction.
 
-Field names are normalized to: 
-* lowercase
+Field names are normalized in the following way: 
 * underscores replaced with spaces
 * third period in things like "1.1.1" replaced with " period"
 

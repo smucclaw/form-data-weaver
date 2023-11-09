@@ -71,8 +71,7 @@ def normalize_field_name(str):
     # Replace the third period in things like "Clause 1.1.1" with "PERIOD", lol
     str = re.sub(r'(\d+)\.(\d+)\.(\d+)', r'\1.\2 PERIOD \3', str)
 
-    return str.lower() # we lowercase the LE source code when comparing
-
+    return str # not lower-cased!
 
 if __name__ == "__main__":
     import doctest
